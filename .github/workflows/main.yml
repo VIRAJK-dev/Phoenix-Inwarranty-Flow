@@ -36,6 +36,12 @@ jobs :
           -d testData.csv \
           -r cli,htmlextra
 
+      - name: Newman Report
+        uses: actions/upload-artifact@v4.6.2
+        with:
+          name: Newman Report
+          path: newman/*.html
+
            
          
           
