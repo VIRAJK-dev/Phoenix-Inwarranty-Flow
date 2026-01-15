@@ -1,4 +1,4 @@
-name: Postman Collection – LambdaTest
+name: Postman Collection - LambdaTest
 
 on:
   workflow_dispatch:
@@ -19,6 +19,23 @@ jobs:
 
       - name: Verify HyperExecute installation
         run: hyperexecute --version
+
+      - name: Validate LambdaTest credentials exist
+        env:
+          LT_USERNAME: ${{ secrets.LT_USERNAME }}
+          LT_ACCESS_KEY: ${{ secrets.LT_ACCESS_KEY }}
+        run: |
+          if [ -z "$LT_USERNAME" ]; then
+            echo "LT_USERNAME is empty ❌"
+            exit 1
+          fi
+
+          if [ -z "$LT_ACCESS_KEY" ]; then
+            echo "LT_ACCESS_KEY is empty ❌"
+            exit 1
+          fi
+
+          echo "LambdaTest credentials are present ✅"
 
       - name: Run Postman Collection on LambdaTest
         env:
