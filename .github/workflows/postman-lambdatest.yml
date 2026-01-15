@@ -1,0 +1,36 @@
+name: Postman Collection on LambdaTest
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+  schedule:
+    - cron: "30 2 * * *"     # 8:00 AM IST
+    - cron: "00 14 * * *"    # 7:30 PM IST
+    - cron: "00 06 * * 1-5"  # 11:30 AM IST (Mon–Fri)
+
+jobs:
+  run-postman-lambdatest:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Install LambdaTest HyperExecute
+        run: |
+          npm install -g @lambdatest/hyperexecute
+
+      - name: Run Postman Collection on LambdaTest
+        env:
+          LT_USERNAME: ${{ secrets.LT_USERNAME }}
+          LT_ACCESS_KEY: ${{ secrets.LT_ACCESS_KEY }}
+        run: |
+          hyperexecute --config hyperexecute.yaml
+
+      - name: Upload Newman HTML Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Newman Report
+          path: newman/index.html
