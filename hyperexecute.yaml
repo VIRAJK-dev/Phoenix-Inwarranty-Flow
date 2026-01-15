@@ -1,19 +1,20 @@
 version: "0.1"
 runson: linux
 
-# Pre steps install the tools needed on the VM
+# These steps set up the environment on the LambdaTest machine
 pre:
   - npm install -g newman
   - npm install -g newman-reporter-htmlextra
 
-# testDiscovery tells HyperExecute how many tests to run. 
-# For a single Postman collection, we just echo a dummy value so it runs once.
+# testDiscovery tells HyperExecute how many tests to run.
+# For a single collection, we use a simple echo to trigger 1 scenario.
 testDiscovery:
   type: raw
   mode: dynamic
-  command: echo "postman-test"
+  command: echo "Postman-API-Tests"
 
-# This is where your actual Newman command goes
+# This is the command that HyperExecute tracks as a "Scenario"
+# $test refers to the output of the discovery command above
 testRunnerCommand: >
   newman run "Inwarranty-flow Collection.postman_collection.json" 
   -e QA.postman_environment.json 
@@ -21,4 +22,5 @@ testRunnerCommand: >
   -r cli,htmlextra 
   --reporter-htmlextra-export newman/index.html
 
-jobLabel: [postman, inwarranty]
+# Optional: Gives your job a searchable name in the dashboard
+jobLabel: [Postman, InwarrantyFlow]
