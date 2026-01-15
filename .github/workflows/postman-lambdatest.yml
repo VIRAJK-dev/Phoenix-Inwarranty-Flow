@@ -42,4 +42,6 @@ jobs:
           LT_USERNAME: ${{ secrets.LT_USERNAME }}
           LT_ACCESS_KEY: ${{ secrets.LT_ACCESS_KEY }}
         run: |
+          export LT_USERNAME="$LT_USERNAME"
+          export LT_ACCESS_KEY="$LT_ACCESS_KEY"
           hyperexecute --config hyperexecute.yaml
