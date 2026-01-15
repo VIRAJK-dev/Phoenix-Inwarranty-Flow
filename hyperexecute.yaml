@@ -2,9 +2,7 @@ version: "0.1"
 
 runson: linux
 
-env:
-  LT_USERNAME: ${LT_USERNAME}
-  LT_ACCESS_KEY: ${LT_ACCESS_KEY}
+# Removed the env mapping here to prevent 401 credential conflicts
 
 pre:
   - npm install -g newman
