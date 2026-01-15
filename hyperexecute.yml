@@ -1,22 +1,20 @@
 version: "0.1"
- 
+
 runson: linux
- 
+
 pre:
   - npm install -g newman
   - npm install -g newman-reporter-htmlextra
- 
+
 scenarios:
-  - name: "Debug Postman Run"
-    commands:
+  - name: "Run Postman Collection"
+    steps:
       - echo "=== START SCENARIO ==="
       - pwd
       - ls -l
-      - which newman || echo "❌ newman NOT found"
-      - newman --version || echo "❌ newman version failed"
-      - echo "=== BEFORE NEWMAN RUN ==="
+      - which newman
+      - newman --version
       - newman run Inwarranty-Flow-Collection.postman_collection.json
-      - echo "=== AFTER NEWMAN RUN ==="
- 
+
 post:
   - echo "Newman execution completed"
