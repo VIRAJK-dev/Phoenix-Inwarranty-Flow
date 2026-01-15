@@ -9,9 +9,11 @@ testDiscovery:
   type: raw
   mode: dynamic
   command: |
-    echo "Postman_API_Tests"
+    echo "Postman_Collection_Run"
  
 testRunnerCommand: |
+pwd
+ls -l
   newman run Inwarranty-flow_Collection.postman_collection.json \
     -e QA.postman_environment.json \
     -d testData.csv \
