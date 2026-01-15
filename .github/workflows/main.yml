@@ -1,81 +1,76 @@
-name : Postman Collection Workflow
+name: Postman Collection Workflow
 
-on : 
-  push :
-    branches: [main]
+on:
+  push:
+    branches: [ main ]
+
   workflow_dispatch:
-  schedule: 
-    - cron : 30 2 * * *    #8 AM IST every day
-    - cron : 00 14 * * *   #7.30 PM IST every day
-    - cron : 00 06 * * 1-5  # 11.30 AM IST Monday to Friday
 
+  schedule:
+    - cron: "30 2 * * *"     # 8:00 AM IST every day
+    - cron: "0 14 * * *"     # 7:30 PM IST every day
+    - cron: "0 6 * * 1-5"    # 11:30 AM IST Monday–Friday
 
-jobs :
+jobs:
   run-postman-tests:
-    runs-on : ec2-github-runner
-
+    runs-on: ubuntu-latest   # ✅ GitHub Linux VM
 
     steps:
-      - name: checkout the code
-        uses: actions/checkout@v5.0.0 
+      - name: Checkout the code
+        uses: actions/checkout@v5
 
-      - name: install nodejs and npm
-        uses: actions/setup-node@v6.0.0
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          node-version : '22'
+          node-version: "22"
 
-      - name: Install Newman and htmlextra reporter globally
+      - name: Install Newman and HTML Extra reporter
         run: |
           npm install -g newman
           npm install -g newman-reporter-htmlextra
 
-      - name: Run the postman collection with Newman
+      - name: Run Postman collection with Newman
         run: |
-          newman run 'Inwarranty-flow Collection.postman_collection.json' \
-          -e QA.postman_environment.json \
-          -d testData.csv \
-          -r cli,htmlextra \
-          --reporter-htmlextra-export ./newman/index.html
+          mkdir -p newman
+          newman run "Inwarranty-flow Collection.postman_collection.json" \
+            -e QA.postman_environment.json \
+            -d testData.csv \
+            -r cli,htmlextra \
+            --reporter-htmlextra-export newman/index.html
 
-      - name: Newman Report
+      - name: Upload Newman Report (Artifact)
         if: always()
-        uses: actions/upload-artifact@v4.6.2
+        uses: actions/upload-artifact@v4
         with:
-          name: Newman Report
-          path: newman/*.html
+          name: Newman-HTML-Report
+          path: newman/index.html
 
-      - name: Creating github page branch
+      - name: Publish report to GitHub Pages
         if: always()
-        uses: peaceiris/actions-gh-pages@v4.0.0
+        uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: newman/
+          publish_dir: newman
 
-
-      - name: Send Email notification
+      - name: Send Email Notification
         if: always()
-        uses: dawidd6/action-send-mail@6d98ae34d733f9a723a9e04e94f2f24ba05e1402
+        uses: dawidd6/action-send-mail@v3
         with:
           server_address: smtp.gmail.com
           server_port: 465
+          secure: true
           username: ${{ secrets.EMAIL_USERNAME }}
           password: ${{ secrets.EMAIL_PASSWORD }}
-          subject: Phoeinx Inwarranty Flow Test Execution Notification
+          subject: Phoenix Inwarranty Flow – Test Execution Report
           to: viraj.kolekar6767@gmail.com
           from: ${{ secrets.EMAIL_USERNAME }}
           body: |
-                 Hi,
-                 Phoenix Inwarranty flow tests has been executed. 
-                 The report has been published and the URL is : 
-                 https://virajk-dev.github.io/Phoenix-Inwarranty-Flow/
-          
-          
+            Hi,
 
-           
-         
-          
-        
+            Phoenix Inwarranty Flow Postman tests have been executed.
 
-        
-       
-    
+            The HTML report is published here:
+            https://virajk-dev.github.io/Phoenix-Inwarranty-Flow/
+
+            Regards,
+            GitHub Actions
