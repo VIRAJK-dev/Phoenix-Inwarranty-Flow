@@ -21,6 +21,3 @@ testRunnerCommand: >
   -d testData.csv 
   -r cli,htmlextra 
   --reporter-htmlextra-export newman/index.html
-
-# 4. Artifacts (So you can see your report after it finishes)
-jobLabel: [postman-api]
