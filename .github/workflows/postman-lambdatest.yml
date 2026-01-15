@@ -38,9 +38,8 @@ jobs:
           echo "LambdaTest credentials are present ✅"
 
       - name: Run Postman Collection on LambdaTest
-        shell: bash
         env:
           LT_USERNAME: ${{ secrets.LT_USERNAME }}
           LT_ACCESS_KEY: ${{ secrets.LT_ACCESS_KEY }}
         run: |
-          hyperexecute --config hyperexecute.yaml --user "$LT_USERNAME" --key "$LT_ACCESS_KEY"
+          hyperexecute --user "$LT_USERNAME" --key "$LT_ACCESS_KEY" --config hyperexecute.yaml
