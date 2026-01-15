@@ -3,17 +3,21 @@ version: "0.1"
 runson: linux
 
 pre:
+  - echo "=== PRE STAGE STARTED ==="
+  - node --version || echo "Node not installed"
+  - npm --version || echo "NPM not installed"
   - npm install -g newman
+  - newman --version
 
 test:
   - name: Postman_API_Tests
     commands:
-      - echo "Running Postman collection"
+      - echo "=== TEST STAGE STARTED ==="
+      - echo "Listing files in workspace"
       - ls -l
-      - newman --version
-      - newman run "Inwarranty-flow Collection.postman_collection.json" \
-          -e QA.postman_environment.json \
-          -d testData.csv
+      - echo "Running Postman collection"
+      - newman run "Inwarranty-flow Collection.postman_collection.json" -e QA.postman_environment.json -d testData.csv
 
 post:
+  - echo "=== POST STAGE STARTED ==="
   - echo "Postman execution completed"
