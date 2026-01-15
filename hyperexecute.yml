@@ -14,7 +14,8 @@ scenarios:
       - ls -l
       - which newman
       - newman --version
-      - newman run Inwarranty-Flow-Collection.postman_collection.json
+      - newman run Inwarranty-flow Collection.postman_collection.json   
+
 
 post:
   - echo "Newman execution completed"
