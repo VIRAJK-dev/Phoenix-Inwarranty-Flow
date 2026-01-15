@@ -4,18 +4,16 @@ runson: linux
 
 pre:
   - npm install -g newman
-  - npm install -g newman-reporter-htmlextra
 
-scenarios:
-  - name: "Run Postman Collection"
-    steps:
-      - echo "=== START SCENARIO ==="
-      - pwd
+test:
+  - name: Postman_API_Tests
+    commands:
+      - echo "Running Postman collection"
       - ls -l
-      - which newman
       - newman --version
-      - newman run Inwarranty-flow Collection.postman_collection.json   
-
+      - newman run "Inwarranty-flow Collection.postman_collection.json" \
+          -e QA.postman_environment.json \
+          -d testData.csv
 
 post:
-  - echo "Newman execution completed"
+  - echo "Postman execution completed"
