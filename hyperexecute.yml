@@ -12,8 +12,8 @@ testDiscovery:
     echo "Postman_Collection_Run"
  
 testRunnerCommand: |
-pwd
-ls -l
+  
+  ls -l
   newman run Inwarranty-flow_Collection.postman_collection.json \
     -e QA.postman_environment.json \
     -d testData.csv \
