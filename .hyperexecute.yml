@@ -1,0 +1,43 @@
+---
+version: 0.2
+globalTimeout: 150
+testSuiteTimeout: 150
+testSuiteStep: 150
+
+runson: linux
+
+autosplit: true
+retryOnFailure: false
+
+maxRetries: 1
+concurrency: 1
+
+env:
+  # Add your environment variables here
+  COLLECTION_PATH: collections/your-collection.json
+  ENVIRONMENT_PATH: environments/your-environment.json
+
+pre:
+  # Install Node.js and dependencies
+  - npm install
+  - npm install -g newman
+  - npm install -g newman-reporter-htmlextra
+
+cacheKey: '{{ checksum "package.json" }}'
+cacheDirectories:
+  - node_modules
+
+testDiscovery:
+  type: raw
+  mode: static
+  command: echo "newman-tests"
+
+testRunnerCommand: newman run $COLLECTION_PATH -e $ENVIRONMENT_PATH --reporters cli,htmlextra --reporter-htmlextra-export ./reports/newman-report-$test.html --color on
+
+jobLabel: ['newman', 'api-tests', 'hyperexecute']
+
+report: true
+partialReports:
+  location: reports
+  type: html
+  frameworkName: newman
