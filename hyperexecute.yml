@@ -8,7 +8,7 @@ pre:
   - echo "Files in workspace:"
   - ls -la
   - test -f "Inwarranty-flow Collection.postman_collection.json" && echo "✅ Collection found" || echo "❌ NOT found"
-  - test -f "QA.postman_environment.json" && echo "✅ Environment found" || echo "❌ NOT found"  
+  - test -f "QA.postman_environment.json" && echo "✅ Environment found" || echo "❌ NOT found"
   - test -f "testData.csv" && echo "✅ Test data found" || echo "❌ NOT found"
 
 testDiscovery:
