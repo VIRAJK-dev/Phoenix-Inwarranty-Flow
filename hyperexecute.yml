@@ -11,12 +11,14 @@ pre:
 
 run:
   - name: Postman_API_Tests
-    commands:
+    command:
       - echo "=== TEST STAGE STARTED ==="
       - echo "Listing files in workspace"
       - ls -l
       - echo "Running Postman collection"
-      - newman run "Inwarranty-flow Collection.postman_collection.json" -e QA.postman_environment.json -d testData.csv
+      - newman run "Inwarranty-flow Collection.postman_collection.json" \
+          -e QA.postman_environment.json \
+          -d testData.csv
 
 post:
   - echo "=== POST STAGE STARTED ==="
