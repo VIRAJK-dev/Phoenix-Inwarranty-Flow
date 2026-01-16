@@ -1,0 +1,54 @@
+name: HyperExecute Newman Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  hyperexecute-newman:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+    
+    - name: Download HyperExecute CLI
+      run: |
+        wget https://downloads.lambdatest.com/hyperexecute/linux/hyperexecute
+        chmod +x hyperexecute
+    
+    - name: Verify HyperExecute YAML
+      run: |
+        cat .hyperexecute.yaml
+        echo "Collection files:"
+        ls -la collections/
+        echo "Environment files:"
+        ls -la environments/
+    
+    - name: Run Newman Tests on HyperExecute
+      run: |
+        ./hyperexecute \
+          --user ${{ secrets.LT_USERNAME }} \
+          --key ${{ secrets.LT_ACCESS_KEY }} \
+          --config .hyperexecute.yaml \
+          --verbose
+      env:
+        LT_USERNAME: ${{ secrets.LT_USERNAME }}
+        LT_ACCESS_KEY: ${{ secrets.LT_ACCESS_KEY }}
+    
+    - name: Upload HyperExecute Artifacts
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: hyperexecute-artifacts
+        path: |
+          reports/
+          *.yaml
