@@ -31,4 +31,4 @@ jobs:
           ls -la
           test -f "Inwarranty-flow Collection.postman_collection.json" && echo "✅ Collection found" || echo "❌ Collection NOT found"
           test -f "QA.postman_environment.json" && echo "✅ Environment found" || echo "❌ Environment NOT found"
-          test -f "testData.csv" && echo "✅ Test data found" || echo "❌ Test
+          test -f "testData.csv" && echo "✅ Test data found" || echo "❌ Test data NOT found"
