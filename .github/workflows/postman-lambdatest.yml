@@ -2,45 +2,69 @@ name: Postman Collection - LambdaTest
 
 on:
   workflow_dispatch:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
   run-postman-lambdatest:
     runs-on: ubuntu-latest
-
+    
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
-
+        uses: actions/checkout@v4
+      
+      - name: List repository files
+        run: |
+          echo "=== Repository contents ==="
+          ls -la
+          echo "=== Checking for required files ==="
+          test -f "hyperexecute.yml" && echo "✅ hyperexecute.yml found" || echo "❌ hyperexecute.yml NOT found"
+          test -f "Inwarranty-flow Collection.postman_collection.json" && echo "✅ Collection found" || echo "❌ Collection NOT found"
+          test -f "QA.postman_environment.json" && echo "✅ Environment found" || echo "❌ Environment NOT found"
+          test -f "testData.csv" && echo "✅ Test data found" || echo "❌ Test data NOT found"
+      
       - name: Install LambdaTest HyperExecute
         run: |
-          curl -fsSL https://downloads.lambdatest.com/hyperexecute/linux/hyperexecute -o hyperexecute
+          wget https://downloads.lambdatest.com/hyperexecute/linux/hyperexecute
           chmod +x hyperexecute
           sudo mv hyperexecute /usr/local/bin/hyperexecute
-
+      
       - name: Verify HyperExecute installation
         run: hyperexecute --version
-
+      
       - name: Validate LambdaTest credentials exist
         env:
           LT_USERNAME: ${{ secrets.LT_USERNAME }}
           LT_ACCESS_KEY: ${{ secrets.LT_ACCESS_KEY }}
         run: |
           if [ -z "$LT_USERNAME" ]; then
-            echo "LT_USERNAME is empty ❌"
+            echo "❌ LT_USERNAME is empty"
             exit 1
           fi
-
           if [ -z "$LT_ACCESS_KEY" ]; then
-            echo "LT_ACCESS_KEY is empty ❌"
+            echo "❌ LT_ACCESS_KEY is empty"
             exit 1
           fi
-
-          echo "LambdaTest credentials are present ✅"
-
-      - name: Run Postman Collection on LambdaTest
+          echo "✅ LambdaTest credentials are present"
+      
+      - name: Run Postman Collection on LambdaTest HyperExecute
         env:
           LT_USERNAME: ${{ secrets.LT_USERNAME }}
           LT_ACCESS_KEY: ${{ secrets.LT_ACCESS_KEY }}
         run: |
-          
-          hyperexecute --user "$LT_USERNAME" --key "$LT_ACCESS_KEY" --config hyperexecute.yml
+          hyperexecute \
+            --user "$LT_USERNAME" \
+            --key "$LT_ACCESS_KEY" \
+            --config hyperexecute.yml \
+            --verbose
+      
+      - name: Upload HyperExecute Reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: newman-reports
+          path: |
+            reports/
+            *.log
