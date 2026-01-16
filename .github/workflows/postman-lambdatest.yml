@@ -1,83 +1,76 @@
 name: Run Newman Tests on LambdaTest
+
 on:
   push:
     branches: [ main, develop ]
   pull_request:
     branches: [ main ]
   workflow_dispatch:
- 
+
 jobs:
   newman-tests:
     runs-on: ubuntu-latest
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '18'
-    - name: Install Newman
-      run: |
-        npm install -g newman
-        npm install -g newman-reporter-htmlextra
-    - name: Verify files exist
-      run: |
-        echo "=== Checking for required files ==="
-        ls -la
-        test -f "Inwarranty-flow Collection.postman_collection.json" && echo "✅ Collection found" || echo "❌ Collection NOT found"
-        test -f "QA.postman_environment.json" && echo "✅ Environment found" || echo "❌ Environment NOT found"
-        test -f "testData.csv" && echo "✅ Test data found" || echo "❌ Test data NOT found"
-    - name: Create LambdaTest tunnel configuration
-      run: |
-        wget https://downloads.lambdatest.com/tunnel/v3/linux/64bit/LT_Linux.zip
-        unzip LT_Linux.zip
-        chmod +x LT
-    - name: Start LambdaTest Tunnel
-      run: |
-        ./LT --user ${{ secrets.LT_USERNAME }} --key ${{ secrets.LT_ACCESS_KEY }} --tunnelName GitHubAction-${{ github.run_id }} &
-        sleep 30
-      env:
-        LT_USERNAME: ${{ secrets.LT_USERNAME }}
-        LT_ACCESS_KEY: ${{ secrets.LT_ACCESS_KEY }}
-    - name: Wait for tunnel to be ready
-      run: |
-        echo "Waiting for LambdaTest tunnel to establish..."
-        sleep 15
-        echo "Tunnel should be ready now"
-    - name: Run Newman Collection
-      run: |
-        mkdir -p ./reports
-        newman run "Inwarranty-flow Collection.postman_collection.json" \
-          -e "QA.postman_environment.json" \
-          -d "testData.csv" \
-          --reporters cli,htmlextra,json \
-          --reporter-htmlextra-export ./reports/newman-report.html \
-          --reporter-json-export ./reports/newman-report.json \
-          --reporter-htmlextra-title "Inwarranty Flow Test Report" \
-          --color on \
-          --verbose \
-          --suppress-exit-code
-      continue-on-error: true
-      env:
-        LT_USERNAME: ${{ secrets.LT_USERNAME }}
-        LT_ACCESS_KEY: ${{ secrets.LT_ACCESS_KEY }}
-    - name: Display test results summary
-      if: always()
-      run: |
-        echo "=== Test Execution Completed ==="
-        if [ -f "./reports/newman-report.json" ]; then
-          echo "Test results available in reports/"
-          ls -lh ./reports/
-        else
-          echo "No report files generated"
-        fi
-    - name: Upload Test Reports
-      uses: actions/upload-artifact@v4
-      if: always()
-      with:
-        name: newman-reports
-        path: ./reports/
-    - name: Stop LambdaTest Tunnel
-      if: always()
-      run: |
-        pkill -f LT || true
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install Newman
+        run: |
+          npm install -g newman
+          npm install -g newman-reporter-htmlextra
+
+      - name: Verify files exist
+        run: |
+          echo "=== Checking for required files ==="
+          ls -la
+          test -f "Inwarranty-flow Collection.postman_collection.json" && echo "✅ Collection found" || echo "❌ Collection NOT found"
+          test -f "QA.postman_environment.json" && echo "✅ Environment found" || echo "❌ Environment NOT found"
+          test -f "testData.csv" && echo "✅ Test data found" || echo "❌ Test data NOT found"
+
+      - name: Download LambdaTest Tunnel
+        run: |
+          wget https://downloads.lambdatest.com/tunnel/v3/linux/64bit/LT_Linux.zip
+          unzip LT_Linux.zip
+          chmod +x LT
+
+      - name: Start LambdaTest Tunnel
+        run: |
+          ./LT --user ${{ secrets.LT_USERNAME }} --key ${{ secrets.LT_ACCESS_KEY }} --tunnelName GitHubAction-${{ github.run_id }} &
+          sleep 30
+
+      - name: Run Newman Collection
+        continue-on-error: true
+        run: |
+          mkdir -p ./reports
+          newman run "Inwarranty-flow Collection.postman_collection.json" \
+            -e "QA.postman_environment.json" \
+            -d "testData.csv" \
+            --reporters cli,htmlextra \
+            --reporter-htmlextra-export ./reports/newman-report.html \
+            --reporter-htmlextra-title "Inwarranty Flow Test Report" \
+            --color on \
+            --suppress-exit-code
+
+      - name: Display test results summary
+        if: always()
+        run: |
+          echo "=== Test Execution Completed ==="
+          ls -lh ./reports || echo "No reports generated"
+
+      - name: Upload Test Reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: newman-reports
+          path: ./reports/
+
+      - name: Stop LambdaTest Tunnel
+        if: always()
+        run: |
+          pkill -f LT || true
