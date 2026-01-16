@@ -1,25 +1,59 @@
-version: "0.1"
+version: "0.2"
+globalTimeout: 150
+testSuiteTimeout: 150
+testSuiteStep: 150
 
 runson: linux
+
+retryOnFailure: false
+maxRetries: 1
+concurrency: 1
 
 pre:
   - echo "=== PRE STAGE STARTED ==="
   - node --version || echo "Node not installed"
   - npm --version || echo "NPM not installed"
   - npm install -g newman
+  - npm install -g newman-reporter-htmlextra
   - newman --version
+  - echo "=== Listing workspace files ==="
+  - ls -la
+  - echo "=== Verifying collection and environment files ==="
+  - test -f "Inwarranty-flow Collection.postman_collection.json" && echo "✅ Collection file found" || echo "❌ Collection file NOT found"
+  - test -f "QA.postman_environment.json" && echo "✅ Environment file found" || echo "❌ Environment file NOT found"
+  - test -f "testData.csv" && echo "✅ Test data file found" || echo "❌ Test data file NOT found"
 
-run:
-  - name: Postman_API_Tests
-    command:
-      - echo "=== TEST STAGE STARTED ==="
-      - echo "Listing files in workspace"
-      - ls -l
-      - echo "Running Postman collection"
-      - newman run "Inwarranty-flow Collection.postman_collection.json" \
-          -e QA.postman_environment.json \
-          -d testData.csv
+testDiscovery:
+  type: raw
+  mode: static
+  command: echo "Postman_API_Tests"
+
+testRunnerCommand: |
+  echo "=== TEST STAGE STARTED ==="
+  echo "Running Postman collection: Inwarranty-flow Collection"
+  newman run "Inwarranty-flow Collection.postman_collection.json" \
+    -e "QA.postman_environment.json" \
+    -d "testData.csv" \
+    --reporters cli,htmlextra \
+    --reporter-htmlextra-export reports/newman-report.html \
+    --reporter-htmlextra-title "Inwarranty Flow Test Report" \
+    --color on \
+    --verbose
 
 post:
   - echo "=== POST STAGE STARTED ==="
-  - echo "Postman execution completed"
+  - echo "Listing report files:"
+  - ls -la reports/ || echo "No reports directory found"
+  - echo "=== Postman execution completed ==="
+
+jobLabel: ['postman', 'newman', 'api-tests']
+
+report: true
+partialReports:
+  location: reports
+  type: html
+  frameworkName: newman
+
+framework:
+  name: newman
+  defaultReports: true
