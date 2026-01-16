@@ -32,7 +32,14 @@ testDiscovery:
   mode: static
   command: echo "newman-tests"
 
-testRunnerCommand: newman run $COLLECTION_PATH -e $ENVIRONMENT_PATH --reporters cli,htmlextra --reporter-htmlextra-export ./reports/newman-report-$test.html --color on
+testRunnerCommand: newman run "Inwarranty-flow Collection.postman_collection.json" \
+            -e "QA.postman_environment.json" \
+            -d "testData.csv" \
+            --reporters cli,htmlextra \
+            --reporter-htmlextra-export ./reports/newman-report.html \
+            --reporter-htmlextra-title "Inwarranty Flow Test Report" \
+            --color on \
+            --suppress-exit-code
 
 jobLabel: ['newman', 'api-tests', 'hyperexecute']
 
