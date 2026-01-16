@@ -56,4 +56,4 @@ partialReports:
 
 framework:
   name: newman
-  defaultReports: true
+  defaultReports: false
