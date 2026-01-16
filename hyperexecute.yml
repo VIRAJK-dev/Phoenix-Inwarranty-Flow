@@ -9,7 +9,7 @@ pre:
   - npm install -g newman
   - newman --version
 
-test:
+run:
   - name: Postman_API_Tests
     commands:
       - echo "=== TEST STAGE STARTED ==="
