@@ -23,11 +23,11 @@ pre:
   - mkdir -p reports
   - echo "Starting Inwarranty Flow Tests..."
 
-# Test discovery
+# Test discovery - create scenario list
 testDiscovery:
   type: raw
   mode: static
-  command: echo "inwarranty-flow-test"
+  command: echo "scenario1"
 
 # Main test execution - ALL FILES ARE IN ROOT DIRECTORY
 testRunnerCommand: newman run "Inwarranty-flow Collection.postman_collection.json" -e "QA.postman_environment.json" -d "testData.csv" --reporters cli,htmlextra,json --reporter-htmlextra-export ./reports/newman-report.html --reporter-htmlextra-title "Inwarranty Flow Test Report" --reporter-json-export ./reports/newman-report.json --color on --suppress-exit-code
