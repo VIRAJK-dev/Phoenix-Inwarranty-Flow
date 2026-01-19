@@ -1,0 +1,18 @@
+{
+  "name": "inwarranty-newman-tests",
+  "version": "1.0.0",
+  "description": "Inwarranty Flow Newman API Tests on HyperExecute",
+  "scripts": {
+    "test": "newman run \"collections/Inwarranty-flow Collection.postman_collection.json\" -e \"environments/QA.postman_environment.json\" -d \"data/testData.csv\" --reporters cli,htmlextra --reporter-htmlextra-export ./reports/newman-report.html --reporter-htmlextra-title \"Inwarranty Flow Test Report\" --color on --suppress-exit-code"
+  },
+  "dependencies": {
+    "newman": "^6.0.0",
+    "newman-reporter-htmlextra": "^1.23.0"
+  },
+  "devDependencies": {},
+  "keywords": [
+    "newman",
+    "postman",
+    "api-testing"
+  ]
+}
