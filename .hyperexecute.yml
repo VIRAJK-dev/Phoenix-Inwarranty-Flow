@@ -1,50 +1,52 @@
 ---
-version: 0.2
+version: 0.1
 globalTimeout: 150
 testSuiteTimeout: 150
 testSuiteStep: 150
 
 runson: linux
 
-autosplit: true
-retryOnFailure: false
-
+retryOnFailure: true
 maxRetries: 1
-concurrency: 1
 
 env:
-  # Add your environment variables here
-  COLLECTION_PATH: collections/your-collection.json
-  ENVIRONMENT_PATH: environments/your-environment.json
+  REPORTS_DIR: reports
+  COLLECTION_PATH: collections/Inwarranty-flow Collection.postman_collection.json
+  ENVIRONMENT_PATH: environments/QA.postman_environment.json
+  DATA_FILE: data/testData.csv
 
-pre:
-  # Install Node.js and dependencies
-  - npm install
-  - npm install -g newman
-  - npm install -g newman-reporter-htmlextra
-
+# Cache node_modules for faster execution
 cacheKey: '{{ checksum "package.json" }}'
 cacheDirectories:
   - node_modules
 
+# Pre-requisite commands - Install dependencies
+pre:
+  - npm install newman
+  - npm install newman-reporter-htmlextra
+  - mkdir -p reports
+  - echo "Starting Inwarranty Flow Tests..."
+
+# Test discovery - Single test scenario
 testDiscovery:
   type: raw
   mode: static
-  command: echo "newman-tests"
+  command: echo "inwarranty-flow-test"
 
-testRunnerCommand: newman run "Inwarranty-flow Collection.postman_collection.json" \
-            -e "QA.postman_environment.json" \
-            -d "testData.csv" \
-            --reporters cli,htmlextra \
-            --reporter-htmlextra-export ./reports/newman-report.html \
-            --reporter-htmlextra-title "Inwarranty Flow Test Report" \
-            --color on \
-            --suppress-exit-code
+# Main test execution command
+testRunnerCommand: newman run "collections/Inwarranty-flow Collection.postman_collection.json" -e "environments/QA.postman_environment.json" -d "data/testData.csv" --reporters cli,htmlextra,json --reporter-htmlextra-export ./reports/newman-report.html --reporter-htmlextra-title "Inwarranty Flow Test Report" --reporter-json-export ./reports/newman-report.json --color on --suppress-exit-code
 
-jobLabel: ['newman', 'api-tests', 'hyperexecute']
+# Post-test commands
+post:
+  - echo "Test execution completed!"
+  - ls -lah reports/
 
+# Job labels for identification
+jobLabel: ['newman', 'inwarranty-flow', 'api-tests', 'qa-environment']
+
+# Report parameters
 report: true
 partialReports:
   location: reports
-  type: html
+  type: json
   frameworkName: newman
