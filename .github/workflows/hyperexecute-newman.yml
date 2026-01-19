@@ -1,4 +1,4 @@
-name: Newman Tests on HyperExecute
+name: Inwarranty Flow - Newman API Tests on HyperExecute
 
 on:
   push:
@@ -6,35 +6,78 @@ on:
   workflow_dispatch:
 
 jobs:
-  test:
+  newman-hyperexecute-tests:
     runs-on: ubuntu-latest
+    name: Run Inwarranty Flow Tests
     
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout Repository
+        uses: actions/checkout@v4
       
-      - uses: actions/setup-node@v4
+      - name: List Repository Files
+        run: |
+          echo "Files in repository root:"
+          ls -la
+          echo ""
+          echo "Checking for .hyperexecute.yaml:"
+          if [ -f ".hyperexecute.yaml" ]; then
+            echo "✅ .hyperexecute.yaml found"
+            cat .hyperexecute.yaml
+          else
+            echo "❌ .hyperexecute.yaml NOT found"
+            exit 1
+          fi
+      
+      - name: Setup Node.js 18
+        uses: actions/setup-node@v4
         with:
           node-version: '18'
+          cache: 'npm'
       
-      - name: Install Dependencies
-        run: npm install
+      - name: Verify Project Structure
+        run: |
+          echo "Checking project structure..."
+          ls -R
+          echo ""
+          echo "Checking for collection file:"
+          test -f "collections/Inwarranty-flow Collection.postman_collection.json" && echo "✅ Collection found" || echo "❌ Collection NOT found"
+          echo "Checking for environment file:"
+          test -f "environments/QA.postman_environment.json" && echo "✅ Environment found" || echo "❌ Environment NOT found"
+          echo "Checking for test data:"
+          test -f "data/testData.csv" && echo "✅ Test data found" || echo "❌ Test data NOT found"
+      
+      - name: Install Newman Dependencies
+        run: |
+          npm install
+          echo "✅ Newman and dependencies installed"
+      
+      - name: Create Reports Directory
+        run: mkdir -p reports
       
       - name: Download HyperExecute CLI
         run: |
+          echo "Downloading HyperExecute CLI..."
           wget https://downloads.lambdatest.com/hyperexecute/linux/hyperexecute
           chmod +x hyperexecute
+          ./hyperexecute --version
       
-      - name: Run Tests
+      - name: Execute Newman Tests on HyperExecute
         env:
           LT_USERNAME: ${{ secrets.LT_USERNAME }}
           LT_ACCESS_KEY: ${{ secrets.LT_ACCESS_KEY }}
         run: |
-          ./hyperexecute --user $LT_USERNAME --key $LT_ACCESS_KEY --config .hyperexecute.yaml
+          echo "Current directory: $(pwd)"
+          echo "Config file location: $(pwd)/.hyperexecute.yaml"
+          ./hyperexecute \
+            --user "$LT_USERNAME" \
+            --key "$LT_ACCESS_KEY" \
+            --config .hyperexecute.yaml \
+            --verbose
       
       - name: Upload Reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: test-reports
+          name: newman-reports
           path: reports/
           if-no-files-found: warn
