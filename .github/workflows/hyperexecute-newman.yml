@@ -1,54 +1,142 @@
-name: HyperExecute Newman Tests
+name: Inwarranty Flow - Newman API Tests on HyperExecute
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: 
+      - main
+      - develop
+      - staging
   pull_request:
-    branches: [ main ]
-  workflow_dispatch:
+    branches: 
+      - main
+  workflow_dispatch:  # Allows manual trigger from GitHub UI
+  schedule:
+    - cron: '0 10 * * 1-5'  # Run at 10 AM UTC, Monday to Friday
 
 jobs:
-  hyperexecute-newman:
+  newman-hyperexecute-tests:
     runs-on: ubuntu-latest
+    name: Run Inwarranty Flow Tests
     
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
-    
-    - name: Setup Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: '18'
-    
-    - name: Download HyperExecute CLI
-      run: |
-        wget https://downloads.lambdatest.com/hyperexecute/linux/hyperexecute
-        chmod +x hyperexecute
-    
-    - name: Verify HyperExecute YAML
-      run: |
-        cat .hyperexecute.yaml
-        echo "Collection files:"
-        ls -la collections/
-        echo "Environment files:"
-        ls -la environments/
-    
-    - name: Run Newman Tests on HyperExecute
-      run: |
-        ./hyperexecute \
-          --user ${{ secrets.LT_USERNAME }} \
-          --key ${{ secrets.LT_ACCESS_KEY }} \
-          --config .hyperexecute.yaml \
-          --verbose
-      env:
-        LT_USERNAME: ${{ secrets.LT_USERNAME }}
-        LT_ACCESS_KEY: ${{ secrets.LT_ACCESS_KEY }}
-    
-    - name: Upload HyperExecute Artifacts
-      uses: actions/upload-artifact@v3
-      if: always()
-      with:
-        name: hyperexecute-artifacts
-        path: |
-          reports/
-          *.yaml
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+      
+      - name: Setup Node.js 18
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Verify Project Files
+        run: |
+          echo "Checking for required files..."
+          if [ ! -f "collections/Inwarranty-flow Collection.postman_collection.json" ]; then
+            echo "❌ Collection file not found!"
+            exit 1
+          fi
+          if [ ! -f "environments/QA.postman_environment.json" ]; then
+            echo "❌ Environment file not found!"
+            exit 1
+          fi
+          if [ ! -f "data/testData.csv" ]; then
+            echo "❌ Test data CSV file not found!"
+            exit 1
+          fi
+          if [ ! -f ".hyperexecute.yaml" ]; then
+            echo "❌ HyperExecute config not found!"
+            exit 1
+          fi
+          echo "✅ All required files are present"
+      
+      - name: Install Newman Dependencies
+        run: |
+          npm install
+          echo "✅ Newman and dependencies installed"
+      
+      - name: Create Reports Directory
+        run: mkdir -p reports
+      
+      - name: Download HyperExecute CLI
+        run: |
+          echo "Downloading HyperExecute CLI..."
+          wget https://downloads.lambdatest.com/hyperexecute/linux/hyperexecute
+          chmod +x hyperexecute
+          ./hyperexecute --version
+          echo "✅ HyperExecute CLI downloaded successfully"
+      
+      - name: Display HyperExecute Configuration
+        run: |
+          echo "📋 HyperExecute Configuration:"
+          cat .hyperexecute.yaml
+      
+      - name: Execute Newman Tests on HyperExecute
+        id: hyperexecute_run
+        env:
+          LT_USERNAME: ${{ secrets.LT_USERNAME }}
+          LT_ACCESS_KEY: ${{ secrets.LT_ACCESS_KEY }}
+        run: |
+          echo "🚀 Starting test execution on HyperExecute..."
+          ./hyperexecute \
+            --user "$LT_USERNAME" \
+            --key "$LT_ACCESS_KEY" \
+            --config .hyperexecute.yaml \
+            --verbose \
+            --download-artifacts \
+            --force-clean-artifacts
+        continue-on-error: true
+      
+      - name: List Generated Reports
+        if: always()
+        run: |
+          echo "📊 Generated Reports:"
+          ls -lah reports/ || echo "No reports directory found"
+          find . -name "*.html" -o -name "*.json" | grep -i report || echo "No report files found"
+      
+      - name: Upload Newman HTML Reports
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: newman-html-reports-${{ github.run_number }}
+          path: |
+            reports/*.html
+            reports/*.json
+          retention-days: 30
+      
+      - name: Upload HyperExecute Artifacts
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: hyperexecute-artifacts-${{ github.run_number }}
+          path: |
+            .hyperexecute/
+            artifacts/
+          retention-days: 15
+      
+      - name: Generate Test Summary
+        if: always()
+        run: |
+          echo "## 🧪 Inwarranty Flow Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Property | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Workflow Run | #${{ github.run_number }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Branch | \`${{ github.ref_name }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Commit | \`${{ github.sha }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Triggered By | ${{ github.actor }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Environment | QA |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📊 Report Links" >> $GITHUB_STEP_SUMMARY
+          echo "- Check the **Artifacts** section above to download HTML reports" >> $GITHUB_STEP_SUMMARY
+          echo "- View detailed execution logs in [LambdaTest HyperExecute Dashboard](https://hyperexecute.lambdatest.com/)" >> $GITHUB_STEP_SUMMARY
+      
+      - name: Check Test Results
+        if: steps.hyperexecute_run.outcome == 'failure'
+        run: |
+          echo "❌ Tests failed! Check the reports for details."
+          exit 1
+      
+      - name: Success Message
+        if: steps.hyperexecute_run.outcome == 'success'
+        run: |
+          echo "✅ All tests passed successfully!"
