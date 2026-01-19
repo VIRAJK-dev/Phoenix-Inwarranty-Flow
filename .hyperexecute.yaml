@@ -26,20 +26,25 @@ pre:
       --color on \
       --suppress-exit-code || echo "Tests completed with failures"
 
-# Post commands - display results and reports
+# Post commands - display results
 post:
   - echo "================================================"
   - echo "Test Execution Completed!"
   - echo "================================================"
-  - echo ""
-  - echo "📊 Report Files Generated:"
   - ls -lah reports/
-  - echo ""
-  - echo "📁 Report Location:"
-  - find reports/ -type f -name "*.html"
-  - echo ""
-  - echo "✅ Download the HTML report from HyperExecute dashboard"
-  - echo "🔗 Or check artifacts in GitHub Actions"
+  - echo "Report generated at: reports/newman-report.html"
+
+# CRITICAL: Enable report upload to HyperExecute dashboard
+report: true
+
+# Upload reports as artifacts
+mergeArtifacts: true
+
+# Specify artifacts to upload
+uploadArtefacts:
+  - name: newman-reports
+    path:
+      - reports/**
 
 # Job labels for identification
 jobLabel: ['newman', 'inwarranty-flow', 'api-tests']
