@@ -11,9 +11,6 @@ maxRetries: 1
 
 env:
   REPORTS_DIR: reports
-  COLLECTION_PATH: collections/Inwarranty-flow Collection.postman_collection.json
-  ENVIRONMENT_PATH: environments/QA.postman_environment.json
-  DATA_FILE: data/testData.csv
 
 # Cache node_modules for faster execution
 cacheKey: '{{ checksum "package.json" }}'
@@ -43,10 +40,3 @@ post:
 
 # Job labels for identification
 jobLabel: ['newman', 'inwarranty-flow', 'api-tests', 'qa-environment']
-
-# Report parameters
-report: true
-partialReports:
-  location: reports
-  type: json
-  frameworkName: newman
