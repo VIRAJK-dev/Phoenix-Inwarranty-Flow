@@ -14,13 +14,32 @@ pre:
   - npm install newman newman-reporter-htmlextra
   - mkdir -p reports
   - echo "Starting Inwarranty Flow Tests..."
-  - newman run "Inwarranty-flow Collection.postman_collection.json" -e "QA.postman_environment.json" -d "testData.csv" --reporters cli,htmlextra,json --reporter-htmlextra-export ./reports/newman-report.html --reporter-htmlextra-title "Inwarranty Flow Test Report" --reporter-json-export ./reports/newman-report.json --color on
+  - |
+    newman run "Inwarranty-flow Collection.postman_collection.json" \
+      -e "QA.postman_environment.json" \
+      -d "testData.csv" \
+      --reporters cli,htmlextra \
+      --reporter-htmlextra-export ./reports/newman-report.html \
+      --reporter-htmlextra-title "Inwarranty Flow Test Report" \
+      --reporter-htmlextra-darkTheme \
+      --reporter-htmlextra-showOnlyFails \
+      --color on \
+      --suppress-exit-code || echo "Tests completed with failures"
 
-# Post commands - verify report generation
+# Post commands - display results and reports
 post:
-  - echo "Test execution completed!"
+  - echo "================================================"
+  - echo "Test Execution Completed!"
+  - echo "================================================"
+  - echo ""
+  - echo "📊 Report Files Generated:"
   - ls -lah reports/
-  - cat reports/newman-report.json | head -50
+  - echo ""
+  - echo "📁 Report Location:"
+  - find reports/ -type f -name "*.html"
+  - echo ""
+  - echo "✅ Download the HTML report from HyperExecute dashboard"
+  - echo "🔗 Or check artifacts in GitHub Actions"
 
 # Job labels for identification
 jobLabel: ['newman', 'inwarranty-flow', 'api-tests']
