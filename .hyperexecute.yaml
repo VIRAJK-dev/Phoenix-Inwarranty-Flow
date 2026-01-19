@@ -9,33 +9,18 @@ runson: linux
 retryOnFailure: true
 maxRetries: 1
 
-env:
-  REPORTS_DIR: reports
-
-# Cache node_modules for faster execution
-cacheKey: '{{ checksum "package.json" }}'
-cacheDirectories:
-  - node_modules
-
 # Pre-requisite commands - install dependencies
 pre:
   - npm install newman newman-reporter-htmlextra
   - mkdir -p reports
   - echo "Starting Inwarranty Flow Tests..."
-
-# Test discovery - create scenario list
-testDiscovery:
-  type: raw
-  mode: static
-  command: echo "scenario1"
-
-# Main test execution - ALL FILES ARE IN ROOT DIRECTORY
-testRunnerCommand: newman run "Inwarranty-flow Collection.postman_collection.json" -e "QA.postman_environment.json" -d "testData.csv" --reporters cli,htmlextra,json --reporter-htmlextra-export ./reports/newman-report.html --reporter-htmlextra-title "Inwarranty Flow Test Report" --reporter-json-export ./reports/newman-report.json --color on --suppress-exit-code
+  - newman run "Inwarranty-flow Collection.postman_collection.json" -e "QA.postman_environment.json" -d "testData.csv" --reporters cli,htmlextra,json --reporter-htmlextra-export ./reports/newman-report.html --reporter-htmlextra-title "Inwarranty Flow Test Report" --reporter-json-export ./reports/newman-report.json --color on
 
 # Post commands - verify report generation
 post:
   - echo "Test execution completed!"
   - ls -lah reports/
+  - cat reports/newman-report.json | head -50
 
 # Job labels for identification
 jobLabel: ['newman', 'inwarranty-flow', 'api-tests']
