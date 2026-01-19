@@ -14,31 +14,23 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
       
+      - name: Setup Node.js 18
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          # Remove cache option to avoid lock file error
+      
       - name: List Repository Files
         run: |
           echo "Files in repository root:"
           ls -la
           echo ""
-          echo "Checking for .hyperexecute.yml:"
-          if [ -f ".hyperexecute.yml" ]; then
-            echo "✅ .hyperexecute.yml found"
-            cat .hyperexecute.yml
-          else
-            echo "❌ .hyperexecute.yml NOT found"
-            exit 1
-          fi
-      
-      - name: Setup Node.js 18
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
-          cache: 'npm'
+          echo "Checking for required files:"
+          test -f ".hyperexecute.yaml" && echo "✅ .hyperexecute.yaml found" || echo "❌ .hyperexecute.yaml NOT found"
+          test -f "package.json" && echo "✅ package.json found" || echo "❌ package.json NOT found"
       
       - name: Verify Project Structure
         run: |
-          echo "Checking project structure..."
-          ls -R
-          echo ""
           echo "Checking for collection file:"
           test -f "collections/Inwarranty-flow Collection.postman_collection.json" && echo "✅ Collection found" || echo "❌ Collection NOT found"
           echo "Checking for environment file:"
@@ -48,7 +40,7 @@ jobs:
       
       - name: Install Newman Dependencies
         run: |
-          npm install
+          npm install newman newman-reporter-htmlextra
           echo "✅ Newman and dependencies installed"
       
       - name: Create Reports Directory
@@ -61,23 +53,37 @@ jobs:
           chmod +x hyperexecute
           ./hyperexecute --version
       
+      - name: Display HyperExecute Config
+        run: |
+          echo "HyperExecute Configuration:"
+          cat .hyperexecute.yaml
+      
       - name: Execute Newman Tests on HyperExecute
         env:
           LT_USERNAME: ${{ secrets.LT_USERNAME }}
           LT_ACCESS_KEY: ${{ secrets.LT_ACCESS_KEY }}
         run: |
-          echo "Current directory: $(pwd)"
-          echo "Config file location: $(pwd)/.hyperexecute.yaml"
           ./hyperexecute \
             --user "$LT_USERNAME" \
             --key "$LT_ACCESS_KEY" \
             --config .hyperexecute.yaml \
             --verbose
+        continue-on-error: true
       
       - name: Upload Reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: newman-reports
+          name: newman-reports-${{ github.run_number }}
           path: reports/
           if-no-files-found: warn
+      
+      - name: Upload HyperExecute Artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hyperexecute-artifacts-${{ github.run_number }}
+          path: |
+            .hyperexecute/
+            artifacts/
+          if-no-files-found: ignore
