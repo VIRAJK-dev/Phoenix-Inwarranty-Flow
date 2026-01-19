@@ -19,12 +19,12 @@ jobs:
           echo "Files in repository root:"
           ls -la
           echo ""
-          echo "Checking for .hyperexecute.yaml:"
-          if [ -f ".hyperexecute.yaml" ]; then
-            echo "✅ .hyperexecute.yaml found"
-            cat .hyperexecute.yaml
+          echo "Checking for .hyperexecute.yml:"
+          if [ -f ".hyperexecute.yml" ]; then
+            echo "✅ .hyperexecute.yml found"
+            cat .hyperexecute.yml
           else
-            echo "❌ .hyperexecute.yaml NOT found"
+            echo "❌ .hyperexecute.yml NOT found"
             exit 1
           fi
       
