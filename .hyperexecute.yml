@@ -17,26 +17,25 @@ cacheKey: '{{ checksum "package.json" }}'
 cacheDirectories:
   - node_modules
 
-# Pre-requisite commands - Install dependencies
+# Pre-requisite commands - install dependencies
 pre:
-  - npm install newman
-  - npm install newman-reporter-htmlextra
+  - npm install newman newman-reporter-htmlextra
   - mkdir -p reports
   - echo "Starting Inwarranty Flow Tests..."
 
-# Test discovery - Single test scenario
+# Test discovery
 testDiscovery:
   type: raw
   mode: static
   command: echo "inwarranty-flow-test"
 
-# Main test execution command
-testRunnerCommand: newman run "collections/Inwarranty-flow Collection.postman_collection.json" -e "environments/QA.postman_environment.json" -d "data/testData.csv" --reporters cli,htmlextra,json --reporter-htmlextra-export ./reports/newman-report.html --reporter-htmlextra-title "Inwarranty Flow Test Report" --reporter-json-export ./reports/newman-report.json --color on --suppress-exit-code
+# Main test execution - ALL FILES ARE IN ROOT DIRECTORY
+testRunnerCommand: newman run "Inwarranty-flow Collection.postman_collection.json" -e "QA.postman_environment.json" -d "testData.csv" --reporters cli,htmlextra,json --reporter-htmlextra-export ./reports/newman-report.html --reporter-htmlextra-title "Inwarranty Flow Test Report" --reporter-json-export ./reports/newman-report.json --color on --suppress-exit-code
 
-# Post-test commands
+# Post commands - verify report generation
 post:
   - echo "Test execution completed!"
   - ls -lah reports/
 
 # Job labels for identification
-jobLabel: ['newman', 'inwarranty-flow', 'api-tests', 'qa-environment']
+jobLabel: ['newman', 'inwarranty-flow', 'api-tests']
