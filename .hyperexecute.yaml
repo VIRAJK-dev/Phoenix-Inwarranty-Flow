@@ -37,14 +37,12 @@ post:
 # CRITICAL: Enable report upload to HyperExecute dashboard
 report: true
 
-# Upload reports as artifacts
+# Merge all artifacts into one
 mergeArtifacts: true
 
-# Specify artifacts to upload
+# Upload artifacts - CORRECT SYNTAX
 uploadArtefacts:
-  - name: newman-reports
-    path:
-      - reports/**
+  - reports/**
 
 # Job labels for identification
 jobLabel: ['newman', 'inwarranty-flow', 'api-tests']
