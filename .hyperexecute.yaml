@@ -1,38 +1,53 @@
 version: 0.1
+runson: linux
+
 globalTimeout: 150
 testSuiteTimeout: 150
 testSuiteStep: 150
-runson: linux
+
 retryOnFailure: true
 maxRetries: 1
+
 # Pre-requisite commands - install dependencies
 pre:
-  - npm install newman newman-reporter-htmlextra
+  - echo "=== PRE STAGE ==="
+  - node --version
+  - npm --version
+  - npm install -g newman newman-reporter-htmlextra
   - mkdir -p reports
-  - echo "Current directory and files:"
   - pwd
   - ls -la
-  - echo "Starting Inwarranty Flow Tests..."
-  - |
-    newman run "collections/InwarrantyFlow.postman_collection.json" \
-      -e "environments/QA.postman_environment.json" \
-      -d "data/testData.csv" \
-      --reporters cli,htmlextra \
-      --reporter-htmlextra-export reports/newman-report.html || echo "Newman completed (may have failures)"
-Adjust paths based on your log check in step B:
+
+# Test execution MUST be here
+test:
+  - name: Inwarranty_Flow_API_Tests
+    commands:
+      - echo "Starting Inwarranty Flow Tests..."
+      - |
+        newman run "collections/InwarrantyFlow.postman_collection.json" \
+        -e "environments/QA.postman_environment.json" \
+        -d "data/testData.csv" \
+        -r cli,htmlextra \
+        --reporter-htmlextra-export reports/newman-report.html \
+        || echo "Newman completed with failures"
+
 # Post commands - display results and reports
 post:
-    - echo "================================================"
-    - echo "Test Execution Completed!"
-    - echo "================================================"
-    - echo ""
-    - "echo \"\U0001F4CA Report Files Generated:\""
-    - ls -lah reports/
-    - echo ""
-    - "echo \"\U0001F4C1 Report Location:\""
-    - find reports/ -type f -name "*.html"
-    - echo ""
-    - echo "✅ Download the HTML report from HyperExecute dashboard"
-    - "echo \"\U0001F517 Or check artifacts in GitHub Actions\""
+  - echo "================================================"
+  - echo "Test Execution Completed!"
+  - echo "================================================"
+  - ls -lah reports/
+  - find reports -type f -name "*.html"
+
+# Enable HyperExecute report pickup
+report: true
+partialReports:
+  - location: reports
+    type: html
+    frameworkName: newman
+
 # Job labels for identification
-jobLabel: ['newman', 'inwarranty-flow', 'api-tests']
+jobLabel:
+  - newman
+  - inwarranty-flow
+  - api-tests
