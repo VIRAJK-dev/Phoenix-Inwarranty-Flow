@@ -1,39 +1,52 @@
 version: 0.1
+runson: linux
+
 globalTimeout: 150
 testSuiteTimeout: 150
 testSuiteStep: 150
-runson: linux
+
 retryOnFailure: true
 maxRetries: 1
-# Pre-requisite commands - install dependencies
+
+# Pre-requisite commands - setup only
 pre:
-    - npm install newman newman-reporter-htmlextra
-    - mkdir -p reports
-    - echo "Starting Inwarranty Flow Tests..."
-    - |
-      newman run "Inwarranty-flow Collection.postman_collection.json" \
+  - echo "=== PRE STAGE ==="
+  - npm install -g newman newman-reporter-htmlextra
+  - mkdir -p reports
+  - ls -la
+
+# ✅ TEST STAGE (THIS TRIGGERS AUTOMATION)
+test:
+  - name: Inwarranty_Flow_Newman_APIs
+    commands:
+      - echo "=== TEST STAGE STARTED ==="
+      - |
+        newman run "Inwarranty-flow Collection.postman_collection.json" \
         -e "QA.postman_environment.json" \
         -d "testData.csv" \
-        --reporters cli,htmlextra \
-        --reporter-htmlextra-export ./reports/newman-report.html \
+        -r cli,htmlextra \
+        --reporter-htmlextra-export reports/newman-report.html \
         --reporter-htmlextra-title "Inwarranty Flow Test Report" \
         --reporter-htmlextra-darkTheme \
         --reporter-htmlextra-showOnlyFails \
         --color on \
-        --suppress-exit-code || echo "Tests completed with failures"
-# Post commands - display results and reports
+        --suppress-exit-code
+
+# Post commands
 post:
-    - echo "================================================"
-    - echo "Test Execution Completed!"
-    - echo "================================================"
-    - echo ""
-    - "echo \"\U0001F4CA Report Files Generated:\""
-    - ls -lah reports/
-    - echo ""
-    - "echo \"\U0001F4C1 Report Location:\""
-    - find reports/ -type f -name "*.html"
-    - echo ""
-    - echo "✅ Download the HTML report from HyperExecute dashboard"
-    - "echo \"\U0001F517 Or check artifacts in GitHub Actions\""
-# Job labels for identification
-jobLabel: ['newman', 'inwarranty-flow', 'api-tests']
+  - echo "=== POST STAGE ==="
+  - ls -lah reports
+  - find reports -type f -name "*.html"
+
+# Enable report pickup in HyperExecute UI
+report: true
+partialReports:
+  - location: reports
+    type: html
+    frameworkName: newman
+
+# Job labels
+jobLabel:
+  - newman
+  - inwarranty-flow
+  - api-tests
