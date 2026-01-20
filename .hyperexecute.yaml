@@ -1,50 +1,68 @@
 version: 0.1
-runson: linux
-
 globalTimeout: 150
 testSuiteTimeout: 150
 testSuiteStep: 150
-
+runson: linux
 retryOnFailure: true
 maxRetries: 1
 
-pre:
-  - echo "=== PRE STAGE ==="
-  - npm install -g newman newman-reporter-htmlextra
-  - mkdir -p reports
-  - ls -la
+# Framework configuration
+framework:
+  name: "newman"
+  defaultReports: false
 
-# 🔥 RAW execution (THIS is the fix)
+# Test discovery - tells HyperExecute what tests to run
 testDiscovery:
   type: raw
   mode: static
-  command: echo "Running Newman via RAW runner"
+  command: echo "newman-tests"
 
+# Test execution command - this is where your tests actually run
 testRunnerCommand: |
-  echo "=== TEST STAGE STARTED ==="
   newman run "Inwarranty-flow Collection.postman_collection.json" \
     -e "QA.postman_environment.json" \
     -d "testData.csv" \
-    -r cli,htmlextra \
-    --reporter-htmlextra-export reports/newman-report.html \
+    --reporters cli,htmlextra,json,junit \
+    --reporter-htmlextra-export ./reports/newman-report.html \
     --reporter-htmlextra-title "Inwarranty Flow Test Report" \
     --reporter-htmlextra-darkTheme \
-    --reporter-htmlextra-showOnlyFails \
+    --reporter-json-export ./reports/newman-report.json \
+    --reporter-junit-export ./reports/newman-report.xml \
     --color on \
-    --suppress-exit-code
+    --bail false
 
+# Install dependencies before test execution
+pre:
+  - npm install newman newman-reporter-htmlextra
+  - mkdir -p reports
+  - echo "Starting Inwarranty Flow Tests..."
+
+# Post-execution commands
 post:
-  - echo "=== POST STAGE ==="
-  - ls -lah reports
-  - find reports -type f -name "*.html"
+  - echo "================================================"
+  - echo "Test Execution Completed!"
+  - echo "================================================"
+  - ls -lah reports/ || true
 
+# Artifact configuration - this uploads reports to HyperExecute
+mergeArtifacts: true
+uploadArtefacts:
+  - name: newman-html-report
+    path:
+      - reports/**/*.html
+  - name: newman-json-report
+    path:
+      - reports/**/*.json
+  - name: newman-xml-report
+    path:
+      - reports/**/*.xml
+
+# Report configuration for HyperExecute dashboard
 report: true
 partialReports:
-  - location: reports
-    type: html
-    frameworkName: newman
+  location: reports
+  type: json
+  frameworkName: newman
 
-jobLabel:
-  - newman
-  - inwarranty-flow
-  - api-tests
+# Job labels
+jobLabel: ['newman', 'inwarranty-flow', 'api-tests']
