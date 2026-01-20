@@ -6,63 +6,55 @@ runson: linux
 retryOnFailure: true
 maxRetries: 1
 
-# Framework configuration
+# CRITICAL: Framework configuration
 framework:
   name: "newman"
   defaultReports: false
 
-# Test discovery - tells HyperExecute what tests to run
+# CRITICAL: Test discovery - defines what tests to run
 testDiscovery:
   type: raw
   mode: static
-  command: echo "newman-tests"
+  command: echo "newman-inwarranty-tests"
 
-# Test execution command - this is where your tests actually run
-testRunnerCommand: |
-  newman run "Inwarranty-flow Collection.postman_collection.json" \
-    -e "QA.postman_environment.json" \
-    -d "testData.csv" \
-    --reporters cli,htmlextra,json,junit \
-    --reporter-htmlextra-export ./reports/newman-report.html \
-    --reporter-htmlextra-title "Inwarranty Flow Test Report" \
-    --reporter-htmlextra-darkTheme \
-    --reporter-json-export ./reports/newman-report.json \
-    --reporter-junit-export ./reports/newman-report.xml \
-    --color on \
-    --bail false
+# CRITICAL: This is where your actual test execution happens
+testRunnerCommand: newman run "Inwarranty-flow Collection.postman_collection.json" -e "QA.postman_environment.json" -d "testData.csv" --reporters cli,htmlextra,json,junit --reporter-htmlextra-export reports/newman-report-$TASK_ID.html --reporter-htmlextra-title "Inwarranty Flow Test Report" --reporter-htmlextra-darkTheme --reporter-json-export reports/newman-report-$TASK_ID.json --reporter-junit-export reports/newman-report-$TASK_ID.xml --color on --bail false --verbose
 
-# Install dependencies before test execution
+# Install dependencies BEFORE tests run
 pre:
   - npm install newman newman-reporter-htmlextra
   - mkdir -p reports
-  - echo "Starting Inwarranty Flow Tests..."
+  - echo "Environment setup completed"
+  - echo "Starting Newman test execution..."
 
-# Post-execution commands
+# Post-execution summary
 post:
   - echo "================================================"
   - echo "Test Execution Completed!"
   - echo "================================================"
-  - ls -lah reports/ || true
+  - ls -lah reports/ || echo "No reports found"
+  - echo "Report files generated:"
+  - find reports/ -type f 2>/dev/null || true
 
-# Artifact configuration - this uploads reports to HyperExecute
-mergeArtifacts: true
-uploadArtefacts:
-  - name: newman-html-report
-    path:
-      - reports/**/*.html
-  - name: newman-json-report
-    path:
-      - reports/**/*.json
-  - name: newman-xml-report
-    path:
-      - reports/**/*.xml
-
-# Report configuration for HyperExecute dashboard
+# CRITICAL: Report configuration for dashboard visibility
 report: true
 partialReports:
   location: reports
   type: json
   frameworkName: newman
 
-# Job labels
+# CRITICAL: Artifact upload configuration
+mergeArtifacts: true
+uploadArtefacts:
+  - name: newman-html-reports
+    path:
+      - reports/**/*.html
+  - name: newman-json-reports
+    path:
+      - reports/**/*.json
+  - name: newman-junit-reports
+    path:
+      - reports/**/*.xml
+
+# Job identification
 jobLabel: ['newman', 'inwarranty-flow', 'api-tests']
