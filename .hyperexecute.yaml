@@ -14,9 +14,9 @@ pre:
   - ls -la
   - echo "Starting Inwarranty Flow Tests..."
   - |
-    newman run "collections/InwarrantyFlow.postman_collection.json" \
-      -e "environments/QA.postman_environment.json" \
-      -d "data/testData.csv" \
+    newman run "InwarrantyFlow.postman_collection.json" \
+      -e "QA.postman_environment.json" \
+      -d "testData.csv" \
       --reporters cli,htmlextra \
       --reporter-htmlextra-export reports/newman-report.html || echo "Newman completed (may have failures)"
 #Adjust paths based on your log check in step B:
