@@ -7,19 +7,20 @@ retryOnFailure: true
 maxRetries: 1
 # Pre-requisite commands - install dependencies
 pre:
-  - npm install newman newman-reporter-htmlextra
-  - mkdir -p reports
-  - echo "Current directory and files:"
-  - pwd
-  - ls -la
-  - echo "Starting Inwarranty Flow Tests..."
-  - |
-    newman run "InwarrantyFlow.postman_collection.json" \
-      -e "QA.postman_environment.json" \
-      -d "testData.csv" \
-      --reporters cli,htmlextra \
-      --reporter-htmlextra-export reports/newman-report.html || echo "Newman completed (may have failures)"
-#Adjust paths based on your log check in step B:
+    - npm install newman newman-reporter-htmlextra
+    - mkdir -p reports
+    - echo "Starting Inwarranty Flow Tests..."
+    - |
+      newman run "Inwarranty-flow Collection.postman_collection.json" \
+        -e "QA.postman_environment.json" \
+        -d "testData.csv" \
+        --reporters cli,htmlextra \
+        --reporter-htmlextra-export ./reports/newman-report.html \
+        --reporter-htmlextra-title "Inwarranty Flow Test Report" \
+        --reporter-htmlextra-darkTheme \
+        --reporter-htmlextra-showOnlyFails \
+        --color on \
+        --suppress-exit-code || echo "Tests completed with failures"
 # Post commands - display results and reports
 post:
     - echo "================================================"
