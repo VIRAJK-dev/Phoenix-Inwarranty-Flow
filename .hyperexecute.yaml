@@ -8,44 +8,42 @@ testSuiteStep: 150
 retryOnFailure: true
 maxRetries: 1
 
-# Pre-requisite commands - setup only
 pre:
   - echo "=== PRE STAGE ==="
   - npm install -g newman newman-reporter-htmlextra
   - mkdir -p reports
   - ls -la
 
-# ✅ TEST STAGE (THIS TRIGGERS AUTOMATION)
-test:
-  - name: Inwarranty_Flow_Newman_APIs
-    commands:
-      - echo "=== TEST STAGE STARTED ==="
-      - |
-        newman run "Inwarranty-flow Collection.postman_collection.json" \
-        -e "QA.postman_environment.json" \
-        -d "testData.csv" \
-        -r cli,htmlextra \
-        --reporter-htmlextra-export reports/newman-report.html \
-        --reporter-htmlextra-title "Inwarranty Flow Test Report" \
-        --reporter-htmlextra-darkTheme \
-        --reporter-htmlextra-showOnlyFails \
-        --color on \
-        --suppress-exit-code
+# 🔥 RAW execution (THIS is the fix)
+testDiscovery:
+  type: raw
+  mode: static
+  command: echo "Running Newman via RAW runner"
 
-# Post commands
+testRunnerCommand: |
+  echo "=== TEST STAGE STARTED ==="
+  newman run "Inwarranty-flow Collection.postman_collection.json" \
+    -e "QA.postman_environment.json" \
+    -d "testData.csv" \
+    -r cli,htmlextra \
+    --reporter-htmlextra-export reports/newman-report.html \
+    --reporter-htmlextra-title "Inwarranty Flow Test Report" \
+    --reporter-htmlextra-darkTheme \
+    --reporter-htmlextra-showOnlyFails \
+    --color on \
+    --suppress-exit-code
+
 post:
   - echo "=== POST STAGE ==="
   - ls -lah reports
   - find reports -type f -name "*.html"
 
-# Enable report pickup in HyperExecute UI
 report: true
 partialReports:
   - location: reports
     type: html
     frameworkName: newman
 
-# Job labels
 jobLabel:
   - newman
   - inwarranty-flow
