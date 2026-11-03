@@ -1,4 +1,4 @@
-name: Postman Collection Workflow
+name: Postman Collection Workflow1
 
 on:
   push:
